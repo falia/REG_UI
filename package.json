@@ -1,0 +1,31 @@
+{
+  "name": "reg_ui",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.16.1",
+    "@aws-amplify/backend-cli": "^1.8.0",
+    "aws-cdk-lib": "^2.189.1",
+    "constructs": "^10.4.2",
+    "esbuild": "^0.25.5",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.1.2",
+    "@mui/lab": "^7.0.0-beta.14",
+    "@mui/material": "^7.1.2",
+    "@types/uuid": "^10.0.0",
+    "aws-amplify": "^6.15.1",
+    "uuid": "^11.1.0"
+  }
+}
