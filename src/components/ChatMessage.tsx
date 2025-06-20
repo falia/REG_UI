@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
   Typography,
   Link,
   Chip,
-  Stack,
+  Button,
 } from '@mui/material';
 import {
   Person as PersonIcon,
   SmartToy as BotIcon,
   Download as DownloadIcon,
+  PictureAsPdf as PdfIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { Message } from '../types/chat';
 
@@ -20,15 +23,37 @@ interface ChatMessageProps {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
+  const [showAllSources, setShowAllSources] = useState(false);
 
   const extractFileName = (url: string): string => {
     try {
       const urlParts = url.split('/');
-      return urlParts[urlParts.length - 1] || 'Document';
+      const fileName = urlParts[urlParts.length - 1] || 'Document';
+      
+      // If filename is too long, truncate it
+      if (fileName.length > 30) {
+        const extension = fileName.split('.').pop();
+        const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+        const truncatedName = nameWithoutExt.substring(0, 20);
+        return `${truncatedName}...${extension ? `.${extension}` : ''}`;
+      }
+      
+      return fileName;
     } catch {
       return 'Document';
     }
   };
+
+  const isPdf = (url: string): boolean => {
+    return url.toLowerCase().endsWith('.pdf');
+  };
+
+  const getDisplayedSources = () => {
+    if (!message.sources) return [];
+    return showAllSources ? message.sources : message.sources.slice(0, 4);
+  };
+
+  const shouldShowToggle = message.sources && message.sources.length > 4;
 
   return (
     <Box
@@ -79,10 +104,19 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           {message.sources && message.sources.length > 0 && (
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Sources:
+                Sources ({message.sources.length}):
               </Typography>
-              <Stack spacing={1}>
-                {message.sources.map((source, index) => (
+              
+              {/* Horizontal layout for sources */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  mb: shouldShowToggle ? 1 : 0,
+                }}
+              >
+                {getDisplayedSources().map((source, index) => (
                   <Chip
                     key={index}
                     label={extractFileName(source)}
@@ -92,18 +126,63 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                     rel="noopener noreferrer"
                     clickable
                     size="small"
-                    icon={<DownloadIcon fontSize="small" />}
+                    icon={
+                      isPdf(source) ? (
+                        <PdfIcon fontSize="small" />
+                      ) : (
+                        <DownloadIcon fontSize="small" />
+                      )
+                    }
                     sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white',
+                      backgroundColor: isUser 
+                        ? 'rgba(255, 255, 255, 0.15)' 
+                        : 'rgba(13, 71, 161, 0.08)',
+                      color: isUser ? 'white' : 'primary.main',
+                      border: isUser ? 'none' : '1px solid rgba(13, 71, 161, 0.2)',
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: isUser 
+                          ? 'rgba(255, 255, 255, 0.25)' 
+                          : 'rgba(13, 71, 161, 0.12)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                       },
-                      alignSelf: 'flex-start',
+                      transition: 'all 0.2s ease-in-out',
+                      maxWidth: '200px',
+                      '& .MuiChip-label': {
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      },
                     }}
                   />
                 ))}
-              </Stack>
+              </Box>
+
+              {/* Show More/Less button */}
+              {shouldShowToggle && (
+                <Button
+                  size="small"
+                  onClick={() => setShowAllSources(!showAllSources)}
+                  startIcon={showAllSources ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    color: isUser ? 'rgba(255, 255, 255, 0.8)' : 'primary.main',
+                    fontSize: '0.75rem',
+                    padding: '2px 8px',
+                    minHeight: 'auto',
+                    textTransform: 'none',
+                    '&:hover': {
+                      backgroundColor: isUser 
+                        ? 'rgba(255, 255, 255, 0.1)' 
+                        : 'rgba(13, 71, 161, 0.08)',
+                    },
+                  }}
+                >
+                  {showAllSources 
+                    ? 'Show Less' 
+                    : `Show ${message.sources.length - 4} More`
+                  }
+                </Button>
+              )}
             </Box>
           )}
         </Paper>

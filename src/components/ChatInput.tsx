@@ -1,86 +1,120 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Box,
-  TextField,
-  IconButton,
+  Typography,
   Paper,
-  CircularProgress,
 } from '@mui/material';
-import { Send as SendIcon } from '@mui/icons-material';
+import { ChatIcon } from '@mui/icons-material';
+import { ChatMessage } from './ChatMessage';
+import { ChatInput } from './ChatInput';
+import { Message } from '../types/chat';
 
-interface ChatInputProps {
+interface ChatAreaProps {
+  messages: Message[];
   onSendMessage: (message: string) => void;
   loading: boolean;
-  disabled?: boolean;
+  selectedTopicId: string | null;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({
+export const ChatArea: React.FC<ChatAreaProps> = ({
+  messages,
   onSendMessage,
   loading,
-  disabled = false,
+  selectedTopicId,
 }) => {
-  const [message, setMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim() && !loading && !disabled) {
-      onSendMessage(message.trim());
-      setMessage('');
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-  return (
-    <Paper
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        p: 1,
-        display: 'flex',
-        alignItems: 'flex-end',
-        gap: 1,
-        backgroundColor: 'background.paper',
-        borderTop: 1,
-        borderColor: 'divider',
-      }}
-    >
-      <TextField
-        fullWidth
-        multiline
-        maxRows={4}
-        placeholder="Ask a question about Luxembourg financial regulations..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyPress={handleKeyPress}
-        disabled={loading || disabled}
-        variant="outlined"
-        size="small"
+  if (!selectedTopicId) {
+    return (
+      <Box
         sx={{
-          '& .MuiOutlinedInput-root': {
-            backgroundColor: 'background.default',
-          },
-        }}
-      />
-      <IconButton
-        type="submit"
-        color="primary"
-        disabled={!message.trim() || loading || disabled}
-        sx={{
-          p: 1.5,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'background.default',
+          p: 4,
         }}
       >
-        {loading ? (
-          <CircularProgress size={20} />
+        <Paper
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            maxWidth: 400,
+          }}
+        >
+          <ChatIcon
+            sx={{
+              fontSize: 64,
+              color: 'primary.main',
+              mb: 2,
+            }}
+          />
+          <Typography variant="h5" gutterBottom>
+            Welcome to CSSF Chat Assistant
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Start a new conversation to ask questions about Luxembourg financial regulations and CSSF documentation.
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        backgroundColor: 'background.default',
+      }}
+    >
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          p: 2,
+        }}
+      >
+        {messages.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+            }}
+          >
+            <Typography variant="body1" color="text.secondary">
+              Start the conversation by asking a question...
+            </Typography>
+          </Box>
         ) : (
-          <SendIcon />
+          <>
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+            <div ref={messagesEndRef} />
+          </>
         )}
-      </IconButton>
-    </Paper>
+      </Box>
+
+      <ChatInput
+        onSendMessage={onSendMessage}
+        loading={loading}
+        disabled={!selectedTopicId}
+      />
+    </Box>
   );
 };

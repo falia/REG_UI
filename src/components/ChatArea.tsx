@@ -4,7 +4,7 @@ import {
   Typography,
   Paper,
 } from '@mui/material';
-import { ChatIcon } from '@mui/icons-material';
+import { Chat as ChatIcon } from '@mui/icons-material';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { Message } from '../types/chat';

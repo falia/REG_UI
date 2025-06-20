@@ -87,21 +87,62 @@ function App() {
     }
   };
 
-  const updateTopicTitle = async (topicId: string, title: string) => {
+  const deleteTopic = async (topicId: string) => {
     try {
-      await client.models.Topic.update({
-        id: topicId,
-        title,
-        updatedAt: new Date().toISOString(),
+      // Delete all messages for this topic first
+      const { data: topicMessages } = await client.models.Message.list({
+        filter: { topicId: { eq: topicId } }
       });
       
-      setTopics(prev => prev.map(topic => 
-        topic.id === topicId 
-          ? { ...topic, title, updatedAt: new Date().toISOString() }
-          : topic
-      ));
+      // Delete messages
+      await Promise.all(
+        topicMessages.map(message => 
+          client.models.Message.delete({ id: message.id })
+        )
+      );
+      
+      // Delete the topic
+      await client.models.Topic.delete({ id: topicId });
+      
+      // Update local state
+      setTopics(prev => prev.filter(topic => topic.id !== topicId));
+      
+      // If we deleted the selected topic, clear selection
+      if (selectedTopicId === topicId) {
+        setSelectedTopicId(null);
+        setMessages([]);
+      }
     } catch (error) {
-      console.error('Error updating topic title:', error);
+      console.error('Error deleting topic:', error);
+      setError('Failed to delete chat');
+    }
+  };
+
+  const deleteAllTopics = async () => {
+    try {
+      // Delete all messages first
+      const { data: allMessages } = await client.models.Message.list();
+      await Promise.all(
+        allMessages.map(message => 
+          client.models.Message.delete({ id: message.id })
+        )
+      );
+      
+      // Delete all topics
+      const { data: allTopics } = await client.models.Topic.list();
+      await Promise.all(
+        allTopics.map(topic => 
+          client.models.Topic.delete({ id: topic.id })
+        )
+      );
+      
+      // Clear local state
+      setTopics([]);
+      setSelectedTopicId(null);
+      setMessages([]);
+    } catch (error) {
+      console.error('Error deleting all topics:', error);
+      setError('Failed to delete all chats');
     }
   };
 
@@ -195,6 +236,8 @@ function App() {
               selectedTopicId={selectedTopicId}
               onTopicSelect={setSelectedTopicId}
               onNewTopic={createNewTopic}
+              onDeleteTopic={deleteTopic}
+              onDeleteAllTopics={deleteAllTopics}
             />
             <ChatArea
               messages={messages}
