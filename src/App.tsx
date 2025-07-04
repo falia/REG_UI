@@ -69,6 +69,29 @@ function App() {
     }
   };
 
+  const updateTopicTitle = async (topicId: string, newTitle: string) => {
+  try {
+    // Update the topic in the database
+    await client.models.Topic.update({
+      id: topicId,
+      title: newTitle,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Update the local state
+    setTopics(prev => 
+      prev.map(topic => 
+        topic.id === topicId 
+          ? { ...topic, title: newTitle, updatedAt: new Date().toISOString() }
+          : topic
+      )
+    );
+  } catch (error) {
+    console.error('Error updating topic title:', error);
+    setError('Failed to update chat title');
+  }
+};
+
   const createNewTopic = async () => {
     try {
       const newTopic = {

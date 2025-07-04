@@ -1,120 +1,86 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
-  Typography,
+  TextField,
+  IconButton,
   Paper,
+  CircularProgress,
 } from '@mui/material';
-import { ChatIcon } from '@mui/icons-material';
-import { ChatMessage } from './ChatMessage';
-import { ChatInput } from './ChatInput';
-import { Message } from '../types/chat';
+import { Send as SendIcon } from '@mui/icons-material';
 
-interface ChatAreaProps {
-  messages: Message[];
+interface ChatInputProps {
   onSendMessage: (message: string) => void;
   loading: boolean;
-  selectedTopicId: string | null;
+  disabled?: boolean;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({
-  messages,
+export const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   loading,
-  selectedTopicId,
+  disabled = false,
 }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState('');
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim() && !loading && !disabled) {
+      onSendMessage(message.trim());
+      setMessage('');
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  if (!selectedTopicId) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'background.default',
-          p: 4,
-        }}
-      >
-        <Paper
-          sx={{
-            p: 4,
-            textAlign: 'center',
-            maxWidth: 400,
-          }}
-        >
-          <ChatIcon
-            sx={{
-              fontSize: 64,
-              color: 'primary.main',
-              mb: 2,
-            }}
-          />
-          <Typography variant="h5" gutterBottom>
-            Welcome to CSSF Chat Assistant
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Start a new conversation to ask questions about Luxembourg financial regulations and CSSF documentation.
-          </Typography>
-        </Paper>
-      </Box>
-    );
-  }
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
 
   return (
-    <Box
+    <Paper
+      component="form"
+      onSubmit={handleSubmit}
       sx={{
-        flex: 1,
+        p: 1,
         display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: 'background.default',
+        alignItems: 'flex-end',
+        gap: 1,
+        backgroundColor: 'background.paper',
+        borderTop: 1,
+        borderColor: 'divider',
       }}
     >
-      <Box
+      <TextField
+        fullWidth
+        multiline
+        maxRows={4}
+        placeholder="Ask a question about Luxembourg financial regulations..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyPress={handleKeyPress}
+        disabled={loading || disabled}
+        variant="outlined"
+        size="small"
         sx={{
-          flex: 1,
-          overflow: 'auto',
-          p: 2,
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: 'background.default',
+          },
+        }}
+      />
+      <IconButton
+        type="submit"
+        color="primary"
+        disabled={!message.trim() || loading || disabled}
+        sx={{
+          p: 1.5,
         }}
       >
-        {messages.length === 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-            }}
-          >
-            <Typography variant="body1" color="text.secondary">
-              Start the conversation by asking a question...
-            </Typography>
-          </Box>
+        {loading ? (
+          <CircularProgress size={20} />
         ) : (
-          <>
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            <div ref={messagesEndRef} />
-          </>
+          <SendIcon />
         )}
-      </Box>
-
-      <ChatInput
-        onSendMessage={onSendMessage}
-        loading={loading}
-        disabled={!selectedTopicId}
-      />
-    </Box>
+      </IconButton>
+    </Paper>
   );
 };

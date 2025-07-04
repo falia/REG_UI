@@ -1,5 +1,5 @@
 // src/services/chatService.ts
-const API_ENDPOINT = 'https://l1pn1vi8yj.execute-api.eu-west-1.amazonaws.com/prod/query';
+const API_ENDPOINT = 'https://9l8tgm9jc3.execute-api.eu-west-1.amazonaws.com/prod/query';
 
 export interface ChatHistory {
   user: string;

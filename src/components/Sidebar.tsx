@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (selectedMenuTopicId) {
       setDeleteDialogOpen(true);
     }
-    handleTopicMenuClose();
+    //handleTopicMenuClose();
   };
 
   const handleDeleteAllTopics = () => {
@@ -105,6 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
     setDeleteDialogOpen(false);
     setSelectedMenuTopicId(null);
+    setTopicMenuAnchor(null);
   };
 
   const confirmDeleteAllTopics = () => {
